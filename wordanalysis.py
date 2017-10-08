@@ -2,7 +2,7 @@ import json
 import pyphen
 
 # settings
-language = 'en'
+language = 'it'
 syllable_formats = ['ccv', 'cvc', 'cv']
 
 # init Pyphen with the right language
@@ -79,10 +79,13 @@ def count_combinations(stats, parts):
 
 
 def get_type(char):
-    """ Return whether the given char is a vowel (v) or consonant (c). """
-    if char in list('aeiou'):
+    """ Return whether the given char is a vowel (v) or consonant (c) or not allowed (!). """
+    if char in ['a','e','i','o','u']:
         return 'v'
-    return 'c'
+    elif char in ['b','c','d','f','g','h','j','k','l','m','n','p','q','r','s','t','v','w','y','z']:
+        return 'c'
+    else:
+        return '!'
 
 
 if __name__ == "__main__":

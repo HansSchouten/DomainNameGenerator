@@ -1,20 +1,28 @@
 import pythonwhois
 import json
 import operator
+import os.path
 from numpy.random import choice
 
 # settings
-language = 'en'
-syllable_count = 2
+language = 'it'
+syllable_count = 3
 verbose = True
 
 def main():
+    output_file = 'output/domains_%s_%i.txt' % (language, syllable_count)
+    
     with open('statistics/syllables_%s.json' % language) as file:
         stats = json.load(file)
     
-    domains = {}
+    domains = re_open(output_file)
+    generated = domains
     while True:
         domain, score = generate_domain(stats)
+        
+        if domain in generated:
+            continue
+        
         if not is_available(domain):
             log(domain + ".com [taken] " + str(round(score, 5)))
             continue
@@ -25,7 +33,7 @@ def main():
         # store available domains every fifth iteration
         if len(domains) % 5 == 0:
             sorted_domains = sorted(domains.items(), key=operator.itemgetter(1), reverse=True)
-            with open('output/domains_%s_%i.txt' % (language, syllable_count), 'w') as file:
+            with open(output_file, 'w') as file:
                 file.write('\n'.join('%s.com %s' % domain for domain in sorted_domains))
 
 
@@ -67,6 +75,16 @@ def normalize(values):
 def is_available(domain):
     """ Return whether the given domain is available. """
     return ('id' not in pythonwhois.get_whois(domain + '.com'))
+
+
+def re_open(file):
+    domains = {}
+    if os.path.isfile(file):
+        with open(file) as lines:
+            for line in lines:
+                tuple = line.strip().split(' ')
+                domains[tuple[0]] = float(tuple[1])
+    return domains
 
 
 def log(message):
