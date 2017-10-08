@@ -5,7 +5,7 @@ import pyphen
 language = 'it'
 syllable_formats = ['ccv', 'cvc', 'cv']
 
-# init Pyphen with the right language
+# init Pyphen with the chosen language
 if (language in pyphen.LANGUAGES):
     hyphenate = pyphen.Pyphen(lang=language)
 else:

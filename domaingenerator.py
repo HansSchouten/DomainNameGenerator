@@ -16,12 +16,14 @@ def main():
         stats = json.load(file)
     
     domains = re_open(output_file)
-    generated = domains
+    generated = {}
     while True:
         domain, score = generate_domain(stats)
         
         if domain in generated:
             continue
+        else:
+            generated[domain] = 1
         
         if not is_available(domain):
             log(domain + ".com [taken] " + str(round(score, 5)))
@@ -34,7 +36,7 @@ def main():
         if len(domains) % 5 == 0:
             sorted_domains = sorted(domains.items(), key=operator.itemgetter(1), reverse=True)
             with open(output_file, 'w') as file:
-                file.write('\n'.join('%s.com %s' % domain for domain in sorted_domains))
+                file.write('\n'.join('%s.com %f' % domain for domain in sorted_domains))
 
 
 def generate_domain(stats):
@@ -78,12 +80,13 @@ def is_available(domain):
 
 
 def re_open(file):
+    """ Return the contents of the given file, or an empty dictionary. """
     domains = {}
     if os.path.isfile(file):
         with open(file) as lines:
             for line in lines:
                 tuple = line.strip().split(' ')
-                domains[tuple[0]] = float(tuple[1])
+                domains[tuple[0].split('.com')[0]] = float(tuple[1])
     return domains
 
 
