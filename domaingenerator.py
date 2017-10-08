@@ -1,14 +1,15 @@
 import pythonwhois
 import json
 import operator
-from pprint import pprint
 from numpy.random import choice
 
+# settings
+language = 'en'
+syllable_count = 2
 verbose = True
-syllable_count = 3
 
 def main():
-    with open('syllable_stats.json') as file:
+    with open('statistics/syllables_%s.json' % language) as file:
         stats = json.load(file)
     
     domains = {}
@@ -21,10 +22,10 @@ def main():
         log("> " + domain + ".com [available] " + str(round(score, 5)))
         domains[domain] = score
         
-        # store available domains every tenth iteration
-        if len(domains) % 10 == 0:
+        # store available domains every fifth iteration
+        if len(domains) % 5 == 0:
             sorted_domains = sorted(domains.items(), key=operator.itemgetter(1), reverse=True)
-            with open('available_domains.txt', 'w') as file:
+            with open('output/domains_%s_%i.txt' % (language, syllable_count), 'w') as file:
                 file.write('\n'.join('%s.com %s' % domain for domain in sorted_domains))
 
 
@@ -38,6 +39,10 @@ def generate_domain(stats):
 
     for i in range(1, syllable_count):
         last_char = syllable[-1]
+        # start over if no combination can be made
+        if last_char not in stats['combinations']:
+            return generate_domain(stats)
+        
         next_chars = list(stats['combinations'][last_char].keys())
         weights = list(stats['combinations'][last_char].values())
         next_char = choice(next_chars, p=normalize(weights))

@@ -1,10 +1,15 @@
 import json
-from pprint import pprint
-from pyphen import Pyphen
+import pyphen
 
-pyphen = Pyphen(lang='en')
-vowels = list('aeiou')
+# settings
+language = 'en'
 syllable_formats = ['ccv', 'cvc', 'cv']
+
+# init Pyphen with the right language
+if (language in pyphen.LANGUAGES):
+    hyphenate = pyphen.Pyphen(lang=language)
+else:
+    hyphenate = pyphen.Pyphen(lang='nl_NL')
 
 def main():
     stats = {
@@ -13,17 +18,19 @@ def main():
         'by_char': {}
     }
     
-    with open('wordlists/words_EN.txt') as wordlist:
+    with open('wordlists/words_%s.txt' % language) as wordlist:
         for word in wordlist:
             analyse(stats, word.strip())
     
-    with open('syllable_stats.json', 'w') as file:
+    with open('statistics/syllables_%s.json' % language, 'w') as file:
         json.dump(stats, file)
+    
+    print('analysis completed')
 
 
 def analyse(stats, word):
     """ Add statistics of the given word to stats. """
-    parts = pyphen.inserted(word).split('-')
+    parts = hyphenate.inserted(word).split('-')
     
     allowed_parts = []
     for part in parts:
@@ -73,7 +80,7 @@ def count_combinations(stats, parts):
 
 def get_type(char):
     """ Return whether the given char is a vowel (v) or consonant (c). """
-    if char in vowels:
+    if char in list('aeiou'):
         return 'v'
     return 'c'
 
