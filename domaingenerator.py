@@ -1,20 +1,31 @@
 import pythonwhois
 import json
+import operator
 from pprint import pprint
 from numpy.random import choice
 
-syllable_count = 2
+verbose = True
+syllable_count = 3
 
 def main():
     with open('syllable_stats.json') as file:
         stats = json.load(file)
     
+    domains = {}
     while True:
         domain, score = generate_domain(stats)
-        if is_available(domain):
-            print("> " + domain + ".com [available] " + str(round(score, 5)))
-        else:
-            print(domain + ".com [taken] " + str(round(score, 5)))
+        if not is_available(domain):
+            log(domain + ".com [taken] " + str(round(score, 5)))
+            continue
+        
+        log("> " + domain + ".com [available] " + str(round(score, 5)))
+        domains[domain] = score
+        
+        # store available domains every tenth iteration
+        if len(domains) % 10 == 0:
+            sorted_domains = sorted(domains.items(), key=operator.itemgetter(1), reverse=True)
+            with open('available_domains.txt', 'w') as file:
+                file.write('\n'.join('%s.com %s' % domain for domain in sorted_domains))
 
 
 def generate_domain(stats):
@@ -51,6 +62,12 @@ def normalize(values):
 def is_available(domain):
     """ Return whether the given domain is available. """
     return ('id' not in pythonwhois.get_whois(domain + '.com'))
+
+
+def log(message):
+    """ Print status messages to console if desired. """
+    if (verbose):
+        print(message)
 
 
 if __name__ == "__main__":
