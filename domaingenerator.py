@@ -1,11 +1,13 @@
-import pythonwhois
+import whois
 import json
+import sys
 import operator
 import os.path
 from numpy.random import choice
 
 # settings
-language = 'it'
+language = 'en'
+tld = '.com'
 syllable_count = 3
 verbose = True
 
@@ -17,6 +19,7 @@ def main():
     
     domains = re_open(output_file)
     generated = {}
+
     while True:
         domain, score = generate_domain(stats)
         
@@ -26,17 +29,17 @@ def main():
             generated[domain] = 1
         
         if not is_available(domain):
-            log(domain + ".com [taken] " + str(round(score, 5)))
+            log('  ' + domain + tld + "\t\t[taken] " + str(round(score, 5)))
             continue
         
-        log("> " + domain + ".com [available] " + str(round(score, 5)))
+        log("> " + domain + tld + "\t\t[available] " + str(round(score, 5)))
         domains[domain] = score
         
         # store available domains every fifth iteration
         if len(domains) % 5 == 0:
             sorted_domains = sorted(domains.items(), key=operator.itemgetter(1), reverse=True)
             with open(output_file, 'w') as file:
-                file.write('\n'.join('%s.com %f' % domain for domain in sorted_domains))
+                file.write('\n'.join('%s' + tld + ' %f' % domain for domain in sorted_domains))
 
 
 def generate_domain(stats):
@@ -65,7 +68,7 @@ def generate_domain(stats):
         syllable = choice(syllables, p=normalize(occurrences))
         domain += syllable
         score += (stats['syllables'][syllable] / sum(occurrences))
-            
+        
     return (domain, score / float(syllable_count))
 
 
@@ -76,7 +79,11 @@ def normalize(values):
 
 def is_available(domain):
     """ Return whether the given domain is available. """
-    return ('id' not in pythonwhois.get_whois(domain + '.com'))
+    try:
+        response = whois.whois(domain + tld)
+        return ('domain_name' not in response) or (response.domain_name is None)
+    except:
+        return False
 
 
 def re_open(file):
@@ -86,7 +93,7 @@ def re_open(file):
         with open(file) as lines:
             for line in lines:
                 tuple = line.strip().split(' ')
-                domains[tuple[0].split('.com')[0]] = float(tuple[1])
+                domains[tuple[0].split(tld)[0]] = float(tuple[1])
     return domains
 
 

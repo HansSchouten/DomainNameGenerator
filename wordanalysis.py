@@ -2,7 +2,7 @@ import json
 import pyphen
 
 # settings
-language = 'it'
+language = 'en'
 syllable_formats = ['ccv', 'cvc', 'cv']
 
 # init Pyphen with the chosen language
